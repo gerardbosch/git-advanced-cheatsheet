@@ -2,6 +2,9 @@ A compilation of not trivial Git tricks and hacks
 
 # Git advanced cheatsheet
 
+#### Misc
+Unset remote tracking branch: `git branch --unset-upstream`
+
 #### Remove tag (local and remote)
 ```shell script
 git push --delete origin TAG
@@ -61,6 +64,38 @@ git remote rm srcrepo
 ```
 And resolve potential conflicts.
 
+(Option C) Fetching a repository branch:
+
+```
+git fetch https://example.link/source-repository.git master
+gIt checkout master
+git merge FETCH_HEAD
+```
+And resolve potential conflicts.
+
 **N.B.** `fetch` and `merge` can be replaced by `pull srcrepo srcbranch`
 
+#### Merge a whole remote repository into the current one (subtree merge)
 
+This will allow you to migrate code from repository `srcrepo` to repository `dstrepo` while
+preserving `srcrepo`'s history and authorship of files. This can be done into a specific prefix path
+of destination repository instead of merging into the root, effectively allowing the merge of two
+different projects together.
+
+```shell script
+git remote add -f srcrepo https://example.link/source-repository.git
+git merge -s ours --no-commit --allow-unrelated-histories srcrepo/master
+git read-tree --prefix=path/to/destination -u srcrepo/master
+git commit -m "Srcrepo merged into dstrepo"
+git remote rm srcrepo
+```
+
+Notes (in command order):
+  * `-f` stands for `fetch`, so add remote and fetch it.
+  * `-s` ours makes it not apply the changes, as that would apply them to the root of the repository
+    (not to a subdirectory).
+  * `-u` makes it apply them not only to index, but also to the working directory.
+
+More about it:
+  * https://gist.github.com/x-yuri/8ad01701db51ec2891ca431b78c58c72
+  * https://stackoverflow.com/a/32684526/6108874
