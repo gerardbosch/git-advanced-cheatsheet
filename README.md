@@ -99,3 +99,19 @@ Notes (in command order):
 More about it:
   * https://gist.github.com/x-yuri/8ad01701db51ec2891ca431b78c58c72
   * https://stackoverflow.com/a/32684526/6108874
+
+## Squash all commits in a branch (disregarding it has merge-commits in between)
+
+To rebase a branch upon the point it was born, e.g. `develop` and squash all commits in that branch
+(typical use case can be a shared branch with frequent _pulls_ from develop), do the following:
+
+```shell
+git reset $(git merge-base origin/develop YOUR_BRANCH)   # or just `develop` if updated with origin
+git add -A
+git commit
+```
+
+All the commits in `YOUR_BRANCH` will be gone, leading to a single final commit on top of `develop`.
+
+**N.B.** Rebasing rewrites the history, so be sure the branch is no longer shared when you squash
+it. Finally do a `push --force` if the branch was already pushed.
