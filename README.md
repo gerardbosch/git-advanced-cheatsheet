@@ -2,7 +2,40 @@ A compilation of not trivial Git tricks and hacks
 
 # Git advanced cheatsheet
 
-#### Misc
+## Add submodule, but specific paths only (sparse-checkout)
+
+This should do the trick and only add the specified subset of submodule files (just tweak `.git/modules/<sub>/info/sparse-checkout` accordingly):
+
+https://stackoverflow.com/questions/45688121/how-to-do-submodule-sparse-checkout-with-git
+
+```console
+git clone --no-checkout path/to/sub sub  # optional: --depth=1
+git submodule add ./sub
+git submodule absorbgitdirs
+git -C sub config core.sparseCheckout true
+echo 'foo/*' >> .git/modules/sub/info/sparse-checkout
+git submodule update --force --checkout sub
+```
+*N.B. Maybe newer versions of Git can achieve the above in a more simple way.*
+
+## Squash all commits in a branch (disregarding it has merge-commits in between)
+
+To rebase a branch upon the point it was born, e.g. `develop` and squash all commits in that branch
+(typical use case can be a shared branch with frequent _pulls_ from develop), do the following:
+
+```shell
+git reset $(git merge-base origin/develop YOUR_BRANCH)   # or just `develop` if updated with origin
+git add -A
+git commit
+```
+
+All the commits in `YOUR_BRANCH` will be gone, leading to a single final commit on top of `develop`.
+
+**N.B.** Rebasing rewrites the history, so be sure the branch is no longer shared when you squash
+it. Finally do a `push --force` if the branch was already pushed.
+
+## Misc
+
 Unset remote tracking branch: `git branch --unset-upstream`
 
 #### Remove tag (local and remote)
@@ -99,19 +132,3 @@ Notes (in command order):
 More about it:
   * https://gist.github.com/x-yuri/8ad01701db51ec2891ca431b78c58c72
   * https://stackoverflow.com/a/32684526/6108874
-
-## Squash all commits in a branch (disregarding it has merge-commits in between)
-
-To rebase a branch upon the point it was born, e.g. `develop` and squash all commits in that branch
-(typical use case can be a shared branch with frequent _pulls_ from develop), do the following:
-
-```shell
-git reset $(git merge-base origin/develop YOUR_BRANCH)   # or just `develop` if updated with origin
-git add -A
-git commit
-```
-
-All the commits in `YOUR_BRANCH` will be gone, leading to a single final commit on top of `develop`.
-
-**N.B.** Rebasing rewrites the history, so be sure the branch is no longer shared when you squash
-it. Finally do a `push --force` if the branch was already pushed.
